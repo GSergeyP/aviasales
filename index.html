@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./css/bootstrap.css" rel="stylesheet" type="text/css" /> 
+    <link href="./css/css.css" rel="stylesheet" type="text/css" />   
+    <title>AviaSales</title>
+</head>
+<body class="bg-primary">
+<div class="container-fild">
+    <div class="row logo">
+        <div class="col-12">
+            <img src="./img/logo.png"  class="rounded mx-auto d-block"  alt="AviaSales">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <div class="row justify-content-end">
+                <div class="card carForm1">
+<form>    
+                   <div class="card-body">
+                      <h4 class="card-title">КОЛИЧЕСТВО ПЕРЕСАДОК</h4>
+                      <label><input type="checkbox" name="name" value="value" /><span>Все</span></label>
+                      <label><input type="checkbox" name="name" value="value" /><span>Без пересадок</span></label>
+                      <label><input type="checkbox" name="name" value="value" /><span>1 пересадка</span></label>
+                      <label><input type="checkbox" name="name" value="value" /><span>2 пересадки</span></label>
+                      <label><input type="checkbox" name="name" value="value" /><span><span>3 пересадки</span></label>
+                    </div>
+</form>
+                </div>
+            </div>
+        </div>
+        <div class="col-7">
+
+            <div class="btn-group float-start icon" role="group" aria-label="Basic example">   
+               <a class="btn" href="#" onClick="cheapSort()" role="button">САМЫЙ ДЕШЕВЫЙ</a>
+               <a class="btn" href="#" onClick="fastSort()" role="button">САМЫЙ БЫСТРЫЙ</a>
+            </div>
+<!-----------<div class="row">----------------------------------------------------------------------------->
+            <div class="carForm2" id="card"></div>        
+<!---------------------------------------------------------------------------------------->
+        </div>
+    </div>
+</div>  
+<script>
+let recUrl = 'https://front-test.beta.aviasales.ru/search'; 
+let sendUrl = 'https://front-test.beta.aviasales.ru/tickets';
+fetch(recUrl).then(function (response) {
+//Получение кода
+	return response.json();
+}).then(function repeat(data) {
+//Отправка кода + получение списка билетов 
+    searchId=data.searchId;
+    fetch(sendUrl+'?searchId='+searchId).then(function (response){
+    if (response.ok) {
+    return response.json();
+  } 
+  else{
+//Отправка повторного запроса при ошибке
+       repeat(data, searchId);
+  }
+}).then(function (data) {
+    TICKETS=data.tickets;
+let beg = 0;
+let fin = 1;
+let two = 2;
+let tmpTickets = new Array();
+let SeGMeNTS = new Array();
+
+    for(var i=0; i<TICKETS.length; i++){
+        //Получение stops0 и stops1
+    stops0=TICKETS[two].segments[0].stops;
+    stops1=TICKETS[two].segments[1].stops;
+
+//Получение сведений из запроса
+//-----------------------------
+price=TICKETS[beg].price;
+carrier=TICKETS[beg].carrier;
+origin0=TICKETS[two].segments[0].origin;
+origin1=TICKETS[two].segments[1].origin;
+destination0=TICKETS[two].segments[0].destination;
+destination1=TICKETS[two].segments[1].destination;
+//Получение времени отлета
+date0=TICKETS[two].segments[0].date;
+    DATE0=date0.substr(11,5);
+
+date1=TICKETS[two].segments[1].date;
+    DATE1=date1.substr(11,5);
+//Получение времени в пути
+duration0=TICKETS[two].segments[0].duration;
+    durationHours0=Math.trunc(duration0/60);
+    durationMinutes0=duration0-durationHours0*60;
+
+duration1=TICKETS[two].segments[1].duration;
+    durationHours1=Math.trunc(duration1/60);
+    durationMinutes1=duration1-durationHours1*60;
+//Получение времени прилета
+hoursMinutes0=DATE0.split(':');
+arrivalTime0=parseInt(hoursMinutes0[0])*60+parseInt(hoursMinutes0[1])+parseInt(duration0);
+day0=Math.trunc(Math.trunc(arrivalTime0/60)/24);
+    DurationHours0=Math.trunc((arrivalTime0 - day0*1440)/60);
+    DurationMinutes0=arrivalTime0 - day0*1440 - DurationHours0*60;
+
+hoursMinutes1=DATE1.split(':');
+arrivalTime1=parseInt(hoursMinutes1[0])*60+parseInt(hoursMinutes1[1])+parseInt(duration1);
+day1=Math.trunc(Math.trunc(arrivalTime1/60)/24);
+    DurationHours1=Math.trunc((arrivalTime1 - day1*1440)/60);
+    DurationMinutes1=arrivalTime1 - day1*1440 - DurationHours1*60;
+//Получение пересадок
+    transfer0=stops0.length;
+    if(stops0.length==1) transfer0='1 ПЕРЕСАДКА'
+    else{
+        if(stops0.length==2) transfer0='2 ПЕРЕСАДКИ'
+        else{
+            if(stops0.length==3) transfer0='3 ПЕРЕСАДКИ'
+            else transfer0='ПРЯМОЙ'           
+        }
+    }  
+    transfer1=stops1.length;
+    if(stops1.length==1) transfer1='1 ПЕРЕСАДКА'
+    else{
+        if(stops1.length==2) transfer1='2 ПЕРЕСАДКИ'
+        else{
+            if(stops1.length==3) transfer1='3 ПЕРЕСАДКИ'
+            else transfer1='ПРЯМОЙ'           
+        }
+    }       
+//----------------------------------------------------------------------------------------------------------
+//Получение значений для манипуляции кнопками:
+    duration = duration0 + duration1; 
+    priceCarrier = {'price':price,'carrier':carrier, 'duration':duration}; 
+    SeGMeNTS.push({'origin':origin0, 'destination':destination0, 'DATE':DATE0, 'durationHours':durationHours0,'durationMinutes':durationMinutes0, 'DurationHours':DurationHours0, 'DurationMinutes':DurationMinutes0, 'stops':stops0, 'transfer':transfer0});
+    SeGMeNTS.push({'origin':origin1, 'destination':destination1, 'DATE':DATE1, 'durationHours':durationHours1,'durationMinutes':durationMinutes1, 'DurationHours':DurationHours1, 'DurationMinutes':DurationMinutes1, 'stops':stops1, 'transfer':transfer1});
+    priceCarrier['SeGMeNTS'] = SeGMeNTS;
+    SeGMeNTS = new Array();
+    tmpTickets.push(priceCarrier);
+//---------------------------------------------------------------------------------------------------------         
+       //Заполнение card     
+       if(stops0!=''&&stops1!=''){
+
+//Заполнение карты
+formCard();
+       }
+       else{
+//Заполнение карты
+formCard();
+        
+        i=TICKETS.length;
+//Создание sessionStorage
+       tmpTickets = JSON.stringify(tmpTickets);
+       sessionStorage.setItem('tmpTickets', tmpTickets);
+       } 
+        two++;
+        beg++;
+        fin++;
+    };  
+}).catch(function (err) {
+
+console.warn('Something went wrong.', err);
+});
+}).catch(function (err) {
+	console.warn('Something went wrong.', err);
+});
+//---------------------------------------------------------------------------------------------------------
+//Сортировка по возрастанию asSort
+function cheapSort(){
+//Очистка поля
+    deleteСard();
+//Получение сведений из sessionStorage
+let tmpTickets = JSON.parse(sessionStorage['tmpTickets']);
+//Сортировка по возрастанию
+var sortTmpTickets = tmpTickets.sort(function(a, b) {
+    return b.price - a.price;
+});
+for(var i=0; i<sortTmpTickets.length; i++){
+//Получение сведений из запроса
+price=sortTmpTickets[i].price;
+carrier=sortTmpTickets[i].carrier;
+origin0=sortTmpTickets[i].SeGMeNTS[0].origin;
+origin1=sortTmpTickets[i].SeGMeNTS[1].origin;
+destination0=sortTmpTickets[i].SeGMeNTS[0].destination;
+destination1=sortTmpTickets[i].SeGMeNTS[1].destination;
+transfer0=sortTmpTickets[i].SeGMeNTS[0].transfer;
+transfer1=sortTmpTickets[i].SeGMeNTS[1].transfer;
+DATE0=sortTmpTickets[i].SeGMeNTS[0].DATE;
+DATE1=sortTmpTickets[i].SeGMeNTS[1].DATE;
+DurationHours0=sortTmpTickets[i].SeGMeNTS[0].DurationHours;
+DurationHours1=sortTmpTickets[i].SeGMeNTS[1].DurationHours;
+DurationMinutes0=sortTmpTickets[i].SeGMeNTS[0].DurationMinutes;
+DurationMinutes1=sortTmpTickets[i].SeGMeNTS[1].DurationMinutes;
+durationHours0=sortTmpTickets[i].SeGMeNTS[0].durationHours;
+durationHours1=sortTmpTickets[i].SeGMeNTS[1].durationHours;
+durationMinutes0=sortTmpTickets[i].SeGMeNTS[0].durationMinutes;
+durationMinutes1=sortTmpTickets[i].SeGMeNTS[1].durationMinutes;
+stops0=sortTmpTickets[i].SeGMeNTS[0].stops;
+stops1=sortTmpTickets[i].SeGMeNTS[1].stops; 
+formCard();
+ }
+}
+//---------------------------------------------------------------------------------------------------------
+//Сортировка по возрастанию asSort
+function fastSort(){
+//Очистка поля
+    deleteСard();
+//Получение сведений из sessionStorage
+let tmpTickets = JSON.parse(sessionStorage['tmpTickets']);
+//Сортировка по возрастанию
+var sortTmpTickets = tmpTickets.sort(function(a, b) {
+    return b.duration - a.duration;
+});
+for(var i=0; i<sortTmpTickets.length; i++){
+//Получение сведений из запроса
+price=sortTmpTickets[i].price;
+carrier=sortTmpTickets[i].carrier;
+origin0=sortTmpTickets[i].SeGMeNTS[0].origin;
+origin1=sortTmpTickets[i].SeGMeNTS[1].origin;
+destination0=sortTmpTickets[i].SeGMeNTS[0].destination;
+destination1=sortTmpTickets[i].SeGMeNTS[1].destination;
+transfer0=sortTmpTickets[i].SeGMeNTS[0].transfer;
+transfer1=sortTmpTickets[i].SeGMeNTS[1].transfer;
+DATE0=sortTmpTickets[i].SeGMeNTS[0].DATE;
+DATE1=sortTmpTickets[i].SeGMeNTS[1].DATE;
+DurationHours0=sortTmpTickets[i].SeGMeNTS[0].DurationHours;
+DurationHours1=sortTmpTickets[i].SeGMeNTS[1].DurationHours;
+DurationMinutes0=sortTmpTickets[i].SeGMeNTS[0].DurationMinutes;
+DurationMinutes1=sortTmpTickets[i].SeGMeNTS[1].DurationMinutes;
+durationHours0=sortTmpTickets[i].SeGMeNTS[0].durationHours;
+durationHours1=sortTmpTickets[i].SeGMeNTS[1].durationHours;
+durationMinutes0=sortTmpTickets[i].SeGMeNTS[0].durationMinutes;
+durationMinutes1=sortTmpTickets[i].SeGMeNTS[1].durationMinutes;
+stops0=sortTmpTickets[i].SeGMeNTS[0].stops;
+stops1=sortTmpTickets[i].SeGMeNTS[1].stops;
+//Заполнение карты
+formCard();
+ }
+}
+//---------------------------------------------------------------------------------------------------------
+//Очистка card 
+function deleteСard() {
+  var deleteElement = document.getElementById("card");
+  deleteElement.innerHTML = ''; 
+}
+//---------------------------------------------------------------------------------------------------------
+//Форма card
+function formCard(){   
+CARD0 = document.getElementById('card');
+CARD0.insertAdjacentHTML('afterBegin', '<div class="card"><div class="card-body"><h5 class="text-secondary"><span class="float-start icon">'+price+' Р</span><img class="float-end icon" src=" http://pics.avs.io/99/36/'+carrier+'.png" alt="Aviasales" /></h5><table class="table table-borderless table-sm"><tr><td class="text-light">'+origin0+'-'+destination0+'</td><td class="text-light">В ПУТИ</td><td  class="text-light">'+transfer0+'</td></tr><tr><td>'+DATE0+'-'+ DurationHours0+':'+DurationMinutes0+'</td><td>'+durationHours0+'ч '+durationMinutes0+'м</td><td>'+stops0+'</td></tr><tr><td class="text-light">'+origin1+'-'+destination1+'</td><td class="text-light">В ПУТИ</td><td class="text-light">'+transfer1+'</td></tr><tr><td>'+DATE1+'-'+ DurationHours1+':'+DurationMinutes1+'</td><td>'+durationHours1+'ч '+durationMinutes1+'м</td><td>'+stops1+'</td></tr></table></div></div>');
+CARD1 = document.getElementById('card');
+CARD1.insertAdjacentHTML('afterBegin','<div class="hght"></div>');
+} 
+</script>
+</body>
+</html>
